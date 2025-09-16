@@ -44,8 +44,10 @@ app.use(
 // Middleware
 app.use(express.json());
 
-app.use("/api/check", {
-  hi: "hi",
+app.use("/api/check", async (req, res) => {
+  res.json({
+    hi: "hi",
+  });
 });
 
 // Routes
