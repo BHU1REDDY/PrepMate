@@ -44,12 +44,6 @@ app.use(
 // Middleware
 app.use(express.json());
 
-app.use("/api/check", async (req, res) => {
-  res.json({
-    hi: "hi",
-  });
-});
-
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/sessions", sessionRoutes);
