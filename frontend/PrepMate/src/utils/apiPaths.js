@@ -1,4 +1,4 @@
-export const BASE_URL = "http://localhost:8000";
+export const BASE_URL = "https://prep-mate-backend2.vercel.app/";
 
 export const API_PATHS = {
   AUTH: {
