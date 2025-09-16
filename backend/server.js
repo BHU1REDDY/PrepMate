@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const path = require("path");
-// const connectDB = require("./config/db");
+
 const { protect } = require("./middlewares/authMiddleware");
 
 const authRoutes = require("./routes/authRoutes");
@@ -13,26 +13,24 @@ const {
   generateInterviewQuestions,
   generateConceptExplanation,
 } = require("./controllers/aiController");
+
 const app = express();
 
+// ✅ Connect to MongoDB once
 let isConnected = false;
 
 async function connectDB() {
+  if (isConnected) return; // Prevent multiple connections in serverless
   try {
-    await mongoose.connect(process.env.MONGO_URI, {});
+    await mongoose.connect(process.env.MONGO_URI);
     isConnected = true;
-    console.log("MongoDB connected");
+    console.log("✅ MongoDB connected");
   } catch (err) {
-    console.error("Error connecting to MongoDB", err);
-    process.exit(1);
+    console.error("❌ Error connecting to MongoDB", err);
   }
 }
-app.use((req, res, next) => {
-  if (!isConnected) {
-    connectDB();
-  }
-  next();
-});
+
+connectDB(); // Connect at cold start
 
 // Middleware to handle CORS
 app.use(
@@ -55,9 +53,7 @@ app.use("/api/ai/generate-questions", protect, generateInterviewQuestions);
 app.use("/api/ai/generate-explanation", protect, generateConceptExplanation);
 
 // Serve uploads folder
-app.use("/uploads", express.static(path.join(__dirname, "uploads"), {}));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Start Server
-// const PORT = process.env.PORT || 5000;
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ✅ For Vercel, don’t listen here — just export the app
 module.exports = app;
