@@ -1,4 +1,4 @@
-const { GoogleGenAI } = require("@google/genai");
+const { GoogleGenAI, Type } = require("@google/genai");
 const {
   conceptExplainPrompt,
   questionAnswerPrompt,
@@ -24,14 +24,27 @@ const generateInterviewQuestions = async (req, res) => {
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash-lite",
       contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              question: { type: Type.STRING },
+              answer: { type: Type.STRING },
+            },
+            required: ["question", "answer"],
+          },
+        },
+      },
     });
     let rawText = response.text;
-    // Clean it: Remove ```json and ``` from beginning and end
+    // Fallback in case the model still wraps output in a code fence
     const cleanedText = rawText
-      .replace(/^```json\s*/, "") // remove starting ```json
-      .replace(/```$/, "") // remove ending ```
-      .trim(); // remove extra spaces
-    // Now safe to parse
+      .replace(/^```json\s*/, "")
+      .replace(/```$/, "")
+      .trim();
     const data = JSON.parse(cleanedText);
     res.status(200).json(data);
   } catch (error) {
@@ -55,14 +68,24 @@ const generateConceptExplanation = async (req, res) => {
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash-lite",
       contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            explanation: { type: Type.STRING },
+          },
+          required: ["title", "explanation"],
+        },
+      },
     });
     let rawText = response.text;
-    // Clean it: Remove ```json and ``` from beginning and end
+    // Fallback in case the model still wraps output in a code fence
     const cleanedText = rawText
-      .replace(/^```json\s*/, "") // remove starting ```json
-      .replace(/```$/, "") // remove ending ```
-      .trim(); // remove extra spaces
-    // Now safe to parse
+      .replace(/^```json\s*/, "")
+      .replace(/```$/, "")
+      .trim();
     const data = JSON.parse(cleanedText);
     res.status(200).json(data);
   } catch (error) {
